@@ -1,0 +1,48 @@
+/*
+  global SASS file
+*/
+
+@import url('https://fonts.googleapis.com/css?family=Comfortaa');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+// set font
+$font-family-base: 'Comfortaa', cursive;
+$primary: #f44336;
+$info: white;
+
+$theme-colors: (
+  "primary": #f44336,
+  "info": white
+);
+
+// mixins
+@mixin footer-style {
+    background-color: $primary !important;
+    height: 3rem;
+    padding: 1rem;
+}
+@mixin no-default-link {
+  text-decoration: none !important;
+  color: white !important;
+}
+@mixin vehicle-gallery {
+  overflow-x: scroll !important;
+  white-space: nowrap !important;
+  position: relative !important;
+}
+
+// global bootstrap overrides
+.card {
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.1);
+  img {
+    border-radius: 0 !important;
+  }
+  .card-footer {
+    border-radius: 0 !important;
+  }
+}
+
+@import 'node_modules/bootstrap/scss/bootstrap';
+@import 'node_modules/bootstrap-vue/src/index.scss';

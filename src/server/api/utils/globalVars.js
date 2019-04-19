@@ -1,0 +1,33 @@
+/*
+  utility files for various constants
+*/
+
+exports.EMAIL_MAX_LENGTH = 80
+exports.DEALERSHIP_NAME_MAX_LENGTH = 80
+
+exports.MAKE_MAX_LENGTH = 15
+exports.MODEL_MAX_LENGTH = 15
+exports.TRIM_MAX_LENGTH = 10
+exports.YEAR_MAX_LENGTH = 20
+exports.PRICE_MAX_LENGTH = 20
+exports.TYPE = 20
+exports.EXTERIOR_COLOUR = 15
+exports.INTERIOR_COLOUR = 15
+exports.KILOMETRES = 8
+exports.FUEL_TYPE = 20
+exports.DOORS = 2
+exports.SEATS = 2
+exports.DESCRIPTION = 300
+
+exports.TRANSMISSION_MAX_LENGTH = 20
+exports.ENGINE_SIZE_MAX_LENGTH = 6
+exports.CYLINDERS_MAX_LENGTH = 2
+exports.HORSEPOWER_MAX_LENGTH = 6
+exports.TORQUE_MAX_LENGTH = 6
+exports.RECOMMENDED_FUEL_MAX_LENGTH = 20
+
+exports.FUEL_ECONOMY_CITY = 5
+exports.FUEL_ECONOMY_HIGHWAY = 5
+exports.FUEL_ECONOMY_COMBINED = 5
+
+exports.INITIAL_PREMIUM_AD_DATE = "1969-12-19T00:58:02+0000"
