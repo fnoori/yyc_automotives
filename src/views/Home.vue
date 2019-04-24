@@ -13,7 +13,7 @@
 <script>
 import PremiumCards from '@/components/PremiumCards'
 import RegularCards from '@/components/RegularCards'
-import axios from 'axios'
+import { mapState } from 'vuex'
 
 export default {
   name: 'Home',
@@ -23,29 +23,22 @@ export default {
   },
   data () {
     return {
-      premiumVehicles: Object,
       premiumSkip: 0,
       premiumLimit: 5,
 
-      regularVehicles: Object,
+      regularVehicles: [],
       regularSkip: 0,
       regularLimit: 5
     }
   },
-  mounted () {
-    axios.get(`${process.env.VUE_APP_API_ROUTE}/vehicles/get-premium-vehicles/${this.premiumSkip}/${this.premiumLimit}`)
-      .then((premium) => {
-        this.premiumVehicles = premium.data
-      }).catch(premiumGetErr => {
-        alert(`unexpected error when retrieving premium ads`)
-      })
-
-    axios.get(`${process.env.VUE_APP_API_ROUTE}/vehicles/get-regular-vehicles/${this.regularSkip}/${this.regularLimit}`)
-      .then((regular) => {
-        this.regularVehicles = regular.data
-      }).catch(regularGetErr => {
-        alert(`unexpected error when retrieving regular ads`)
-      })
+  created () {
+    this.$store.dispatch('fetchPremiumVehicles', {
+      skip: this.premiumSkip,
+      limit: 4
+    })
+  },
+  computed: {
+    ...mapState(['premiumVehicles'])
   }
 }
 </script>

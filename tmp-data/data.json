@@ -1,0 +1,192 @@
+[
+    {
+        "_id" : "5cb79b46a3ea2b1f8a896be7",
+        "images" : [ 
+            {
+                "Bucket" : "yycautomotives/development/users/5cb79ad0a3ea2b1f8a896bdc/5cb79b46a3ea2b1f8a896be7",
+                "Key" : "5cb79b40a3ea2b1f8a896be5.jpeg",
+                "url" : "https://s3-us-west-1.amazonaws.com/yycautomotives/development/users/5cb79ad0a3ea2b1f8a896bdc/5cb79b46a3ea2b1f8a896be7/5cb79b40a3ea2b1f8a896be5.jpeg"
+            }
+        ],
+        "basic_info" : {
+            "make" : "Ford",
+            "model" : "Focus",
+            "trim" : "LEEE",
+            "year" : 2015,
+            "type" : "Hatchback",
+            "price" : 20000,
+            "exterior_colour" : "White",
+            "kilometres" : 0,
+            "fuel_type" : "Gas"
+        },
+        "mechanical_info" : {
+            "transmission" : "Auto",
+            "recommended_fuel" : "Premium"
+        },
+        "dealership" : "5cb79ad0a3ea2b1f8a896bdc",
+        "date" : {
+            "created" : "2019-04-17T21:31:50.523Z",
+            "modified" : "2019-04-17T21:31:50.523Z"
+        },
+        "premium_ad" : {
+            "start" : "2019-04-02T00:58:02.000Z",
+            "end" : "2019-04-29T00:58:02.000Z"
+        },
+        "views" : 26,
+        "__v" : 0
+    },
+
+    {
+        "_id" : "5cb79b6ca3ea2b1f8a896bea",
+        "images" : [ 
+            {
+                "Bucket" : "yycautomotives/development/users/5cb79ad5a3ea2b1f8a896bde/5cb79b6ca3ea2b1f8a896bea",
+                "Key" : "5cb79b66a3ea2b1f8a896be8.jpeg",
+                "url" : "https://s3-us-west-1.amazonaws.com/yycautomotives/development/users/5cb79ad5a3ea2b1f8a896bde/5cb79b6ca3ea2b1f8a896bea/5cb79b66a3ea2b1f8a896be8.jpeg"
+            }
+        ],
+        "basic_info" : {
+            "make" : "Honda",
+            "model" : "Civic",
+            "trim" : "SE",
+            "year" : 2015,
+            "type" : "Sedan",
+            "price" : 20000,
+            "exterior_colour" : "White",
+            "kilometres" : 0,
+            "fuel_type" : "Gas"
+        },
+        "mechanical_info" : {
+            "transmission" : "Manual",
+            "recommended_fuel" : "Regular"
+        },
+        "dealership" : "5cb79ad5a3ea2b1f8a896bde",
+        "date" : {
+            "created" : "2019-04-17T21:32:28.010Z",
+            "modified" : "2019-04-17T21:32:28.010Z"
+        },
+        "premium_ad" : {
+            "start" : "1969-12-19T00:58:02.000Z",
+            "end" : "1969-12-19T00:58:02.000Z"
+        },
+        "views" : 0,
+        "__v" : 0
+    },
+
+    {
+        "_id" : "5cb79ba7a3ea2b1f8a896bed",
+        "images" : [ 
+            {
+                "Bucket" : "yycautomotives/development/users/5cb79adca3ea2b1f8a896be0/5cb79ba7a3ea2b1f8a896bed",
+                "Key" : "5cb79ba0a3ea2b1f8a896beb.jpeg",
+                "url" : "https://s3-us-west-1.amazonaws.com/yycautomotives/development/users/5cb79adca3ea2b1f8a896be0/5cb79ba7a3ea2b1f8a896bed/5cb79ba0a3ea2b1f8a896beb.jpeg"
+            }
+        ],
+        "basic_info" : {
+            "make" : "Hyundai",
+            "model" : "Elantra",
+            "trim" : "SER",
+            "year" : 2019,
+            "type" : "Hatchback",
+            "price" : 25000,
+            "exterior_colour" : "Black",
+            "kilometres" : 0,
+            "fuel_type" : "Diesel"
+        },
+        "mechanical_info" : {
+            "transmission" : "Auto",
+            "recommended_fuel" : "Regular"
+        },
+        "dealership" : "5cb79adca3ea2b1f8a896be0",
+        "date" : {
+            "created" : "2019-04-17T21:33:27.310Z",
+            "modified" : "2019-04-17T21:33:27.310Z"
+        },
+        "premium_ad" : {
+            "start" : "2019-04-02T00:58:02.000Z",
+            "end" : "2019-04-29T00:58:02.000Z"
+        },
+        "views" : 1,
+        "__v" : 0
+    },
+
+    {
+        "_id" : "5cb79bd7a3ea2b1f8a896bf0",
+        "images" : [ 
+            {
+                "Bucket" : "yycautomotives/development/users/5cb79ae1a3ea2b1f8a896be2/5cb79bd7a3ea2b1f8a896bf0",
+                "Key" : "5cb79bd1a3ea2b1f8a896bee.jpeg",
+                "url" : "https://s3-us-west-1.amazonaws.com/yycautomotives/development/users/5cb79ae1a3ea2b1f8a896be2/5cb79bd7a3ea2b1f8a896bf0/5cb79bd1a3ea2b1f8a896bee.jpeg"
+            }
+        ],
+        "basic_info" : {
+            "make" : "Acura",
+            "model" : "TLX",
+            "trim" : "TypeR",
+            "year" : 2017,
+            "type" : "Sedan",
+            "price" : 28000,
+            "exterior_colour" : "White",
+            "kilometres" : 23000,
+            "fuel_type" : "Gas"
+        },
+        "mechanical_info" : {
+            "transmission" : "Auto",
+            "recommended_fuel" : "Premium"
+        },
+        "dealership" : "5cb79ae1a3ea2b1f8a896be2",
+        "date" : {
+            "created" : "2019-04-17T21:34:15.445Z",
+            "modified" : "2019-04-17T21:34:15.445Z"
+        },
+        "premium_ad" : {
+            "start" : "1969-12-19T00:58:02.000Z",
+            "end" : "1969-12-19T00:58:02.000Z"
+        },
+        "views" : 0,
+        "__v" : 0
+    },
+
+    {
+        "_id" : "5cb79c21a3ea2b1f8a896bf3",
+        "images" : [ 
+            {
+                "Bucket" : "yycautomotives/development/users/5cb79ae6a3ea2b1f8a896be4/5cb79c21a3ea2b1f8a896bf3",
+                "Key" : "5cb79c1ca3ea2b1f8a896bf1.jpeg",
+                "url" : "https://s3-us-west-1.amazonaws.com/yycautomotives/development/users/5cb79ae6a3ea2b1f8a896be4/5cb79c21a3ea2b1f8a896bf3/5cb79c1ca3ea2b1f8a896bf1.jpeg"
+            }
+        ],
+        "basic_info" : {
+            "make" : "Dodge",
+            "model" : "Charger",
+            "trim" : "RUC",
+            "year" : 2017,
+            "type" : "Coupe",
+            "price" : 22000,
+            "exterior_colour" : "White",
+            "kilometres" : 50000,
+            "fuel_type" : "Gas",
+            "description" : "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat."
+        },
+        "mechanical_info" : {
+            "transmission" : "Manual",
+            "recommended_fuel" : "Regular"
+        },
+        "dealership" : "5cb79ae6a3ea2b1f8a896be4",
+        "date" : {
+            "created" : "2019-04-17T21:35:29.572Z",
+            "modified" : "2019-04-17T21:35:29.572Z"
+        },
+        "premium_ad" : {
+            "start" : "2019-04-02T00:58:02.000Z",
+            "end" : "2019-04-29T00:58:02.000Z"
+        },
+        "fuel_economy" : {
+            "city" : "8.1",
+            "highway" : "10.1",
+            "combined" : "9.5"
+        },
+        "views" : 35,
+        "__v" : 0
+    }
+]
