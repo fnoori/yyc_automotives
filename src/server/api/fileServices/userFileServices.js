@@ -1,5 +1,7 @@
 const _ = require('underscore')
 const AWS = require('aws-sdk')
+const fs = require('fs')
+const errors = require('../utils/errors')
 
 // configuring the AWS environment
 AWS.config.update({
@@ -9,30 +11,21 @@ AWS.config.update({
 
 let s3 = new AWS.S3()
 
-exports.deleteFile = async (file) => {
-  console.log('\n\n\n')
-  console.log('in deleteFile')
-  console.log('\n\n\n')
-  if (process.env.NODE_ENV === 'development-local') {
+module.exports = () => ({
+  deleteFile: async (file) => {
+    if (!_.isUndefined(file)) {
+      if (process.env.NODE_ENV === 'development-local') {
+        try {
+          fs.unlinkSync(file.path)
 
-    try {
-      if (!_.isUndefined(file)) {
-        let awsDelete = {
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: file.key
+          return true
+        } catch (e) {
+          console.log(errors.createErrorMessage(e))
+          return false
         }
-
-        await s3.deleteObject(awsDelete).promise()
+      } else if (process.env.NODE_ENV === 'development-aws') {
+      } else if (process.env.NODE_ENV === 'production') {
       }
-
-      return true
-    } catch (e) {
-      console.log(e)
-      return false
     }
-  } else if (process.env.NODE_ENV === 'development-aws') {
-
-  } else if (process.env.NODE_ENV === 'production') {
-
   }
-}
+})
