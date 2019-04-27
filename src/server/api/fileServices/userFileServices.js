@@ -12,9 +12,10 @@ AWS.config.update({
 let s3 = new AWS.S3()
 
 module.exports = () => ({
+
   /**
    * @param {JSON} file File information
-   * @returns {Boolean} Result of deleting file
+   * @returns {boolean} Result of deleting file
    */
   deleteFile: async (file) => {
     if (!_.isUndefined(file)) {
@@ -25,7 +26,7 @@ module.exports = () => ({
 
           return true
         } catch (e) {
-          console.log(errors.createErrorMessage(e))
+          errors.createAndSaveErrorMessage(e)
           return false
         }
 
@@ -43,7 +44,7 @@ module.exports = () => ({
 
           return true
         } catch (e) {
-          console.log(errors.createErrorMessage(e))
+          errors.createAndSaveErrorMessage(e)
           return false
         }
 
@@ -60,10 +61,10 @@ module.exports = () => ({
 
           return true
         } catch (e) {
-          console.log(errors.createErrorMessage(e))
+          errors.createAndSaveErrorMessage(e)
           return false
         }
-        
+
       }
     }
   }

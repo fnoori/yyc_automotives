@@ -34,14 +34,8 @@ const userSchema = mongoose.Schema({
   },
   logo: { type: Object },
   date: {
-    created: {
-      type: Date,
-      required: true
-    },
-    modified: {
-      type: Date,
-      required: true
-    }
+    created: { type: Date, required: true },
+    modified: { type: Date, required: true }
   }
 })
 
