@@ -2,6 +2,7 @@
 node_modules
 /dist
 /aws-cli-shortcuts
+/uploads/tmp
 
 # local env files
 .env.local
