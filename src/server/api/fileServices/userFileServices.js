@@ -228,5 +228,72 @@ module.exports = () => ({
       }
 
     }
+  },
+
+  /**
+   * @param {Object} user User information
+   * @param {file} file File information
+   * @returns {Object} Logo upload data (including path)
+   */
+  updateFile: async (user, file) => {
+    if (process.env.NODE_ENV === 'development-local') {
+
+      try {
+        // replace logo
+        fs.renameSync(file.path, `uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
+
+        return true
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        this.deleteFile(file)
+        return false
+      }
+
+    } else if (process.env.NODE_ENV === 'development-aws') {
+
+      try {
+        const awsCopy = {
+          Bucket: `${process.env.AWS_BUCKET_NAME}/development/users/${user._id}`,
+          CopySource: file.location,
+          Key: `logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`
+        }
+        const awsDelete = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: file.key
+        }
+
+        await s3.copyObject(awsCopy).promise()
+        await s3.deleteObject(awsDelete).promise()
+
+        return true
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        this.deleteFile(file)
+        return false
+      }
+
+    } else if (process.env.NODE_ENV === 'production') {
+
+      try {
+        const awsCopy = {
+          Bucket: `${process.env.AWS_BUCKET_NAME}/production/users/${user._id}`,
+          CopySource: file.location,
+          Key: `logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`
+        }
+        const awsDelete = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: file.key
+        }
+
+        await s3.copyObject(awsCopy).promise()
+        await s3.deleteObject(awsDelete).promise()
+
+        return true
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        this.deleteFile(file)
+        return false
+      }
+    }
   }
 })

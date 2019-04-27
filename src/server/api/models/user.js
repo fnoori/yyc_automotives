@@ -12,6 +12,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
     maxLength: globalVars.EMAIL_MAX_LENGTH,
+    // eslint-disable-next-line no-useless-escape
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'invalid email address']
   },
   password: {
