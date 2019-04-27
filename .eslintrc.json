@@ -17,6 +17,7 @@
         "vue"
     ],
     "rules": {
-        "padded-blocks": 0
+        "padded-blocks": 0,
+        "spaced-comment": 0
     }
 }

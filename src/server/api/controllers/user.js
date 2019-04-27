@@ -20,6 +20,12 @@ const userFileServices = require('../fileServices/userFileServices')()
 
 // register function
 // arguments: { email, password, dealership, (image)logo }
+
+/**
+ * @param {JSON} req Request data
+ * @param {JSON} res Result data
+ * @return {JSON} Outcome of operations
+ */
 exports.register = async (req, res) => {
   const email = req.body.email
   const password = req.body.password
@@ -29,7 +35,6 @@ exports.register = async (req, res) => {
   // ensure validation is empty
   // delete temporary file from aws
   if (!validations.isEmpty()) {
-    // this.deleteFile(req.file)
     userFileServices.deleteFile(req.file)
     return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
   }
@@ -66,36 +71,13 @@ exports.register = async (req, res) => {
 
     const saved = await newUser.save()
     try {
-      // copy logo from temporary location to user directory
-      const awsCopy = {
-        Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved._id}`,
-        CopySource: req['file']['location'],
-        Key: `logo.${req['file']['mimetype'].split('/')[1]}`
-      }
-      // since aws does not offer a 'move' api, must delete after copy
-      const awsDelete = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${req['file']['key']}`
-      }
-
-      const logoLocation = {
-        Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved._id}`,
-        Key: `logo.${req['file']['mimetype'].split('/')[1]}`,
-        url: `${process.env.AWS_BASE_URL}/${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved._id}/logo.${req['file']['mimetype'].split('/')[1]}`
-      }
-
-      // perform operations
-      await s3.copyObject(awsCopy).promise()
-      await s3.deleteObject(awsDelete).promise()
-
-      // update the images of vehicle
-      // TODO: this could be joined with the save operation
+      const logoLocation = userFileServices.createDirAndMoveFile(saved, req.file)
       await Users.findOneAndUpdate({ _id: saved._id }, { logo: logoLocation })
 
       res.status(200).send('user created successfully')
     } catch (e) {
       console.log(e)
-      this.deleteOnFail(saved._id, req.file)
+      userFileServices.deleteOnFail(saved._id, req.file)
       return res.status(500).send('failed to upload logo')
     }
   } catch (e) {
