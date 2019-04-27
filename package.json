@@ -14,7 +14,8 @@
     "dev-server": "NODE_ENV=development nodemon src/server/main.js",
     "dev-server-aws": "NODE_ENV=development-aws nodemon src/server/main.js",
     "dev-server-local": "NODE_ENV=development-local nodemon src/server/main.js",
-    "debug": "NODE_ENV=development-local node --inspect --inspect-brk=3000 src/server/main.js"
+    "debug-local": "NODE_ENV=development-local node --inspect --inspect-brk=3000 src/server/main.js",
+    "debug-aws": "NODE_ENV=development-aws node --inspect --inspect-brk=3000 src/server/main.js"
   },
   "dependencies": {
     "argon2": "^0.21.0",

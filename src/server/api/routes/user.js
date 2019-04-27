@@ -8,7 +8,15 @@ const multer = require('multer')
 const Controller = require('../controllers/user')
 
 let upload
-let fileFilter
+// filter to only allow images
+// file must be PNG
+let fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png') {
+    cb(null, true)
+  } else {
+    cb(null, false)
+  }
+}
 
 // local development environment, files uploaded locally
 if (process.env.NODE_ENV === 'development-local') {
@@ -21,7 +29,10 @@ if (process.env.NODE_ENV === 'development-local') {
     }
   })
 
-  upload = multer({ storage: storage })
+  upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+  })
 
 // aws development environment
 } else if (process.env.NODE_ENV === 'development-aws') {
@@ -33,16 +44,6 @@ if (process.env.NODE_ENV === 'development-local') {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   })
-
-  // filter to only allow images
-  fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'image/jpeg' ||
-    file.mimetype === 'image/png') {
-      cb(null, true)
-    } else {
-      cb(null, false)
-    }
-  }
 
   // configure s3 multer, to upload directly to aws
   upload = multer({
@@ -105,7 +106,7 @@ router.post('/login', Controller.login)
 
 // update user
 // arguments (optional): { email, password, dealership, (image)logo }
-router.patch('/update-user/:user_id',
+router.patch('/update-user',
   passport.authenticate('jwt', { session: false }),
   upload.single('logo'),
   validation.validate('updateUser'),

@@ -4,22 +4,21 @@ const _ = require('underscore')
 const argon2 = require('argon2')
 const passport = require('passport')
 const jwt = require('jsonwebtoken')
-const AWS = require('aws-sdk')
 const { validationResult } = require('express-validator/check')
-let s3
-
-// configuring the AWS environment
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-})
-
-s3 = new AWS.S3()
 
 const userFileServices = require('../fileServices/userFileServices')()
+const errors = require('../utils/errors')
 
-// register function
-// arguments: { email, password, dealership, (image)logo }
+/**
+ * @param {Object} req Request data
+ *                  - email
+ *                  - password
+ *                  - dealership
+ *                  - logo
+ * @param {Object} res Result data
+ * @return {Object} Outcome of operations, could be
+ *                  an error message or success message
+ */
 exports.register = async (req, res) => {
   const email = req.body.email
   const password = req.body.password
@@ -29,7 +28,6 @@ exports.register = async (req, res) => {
   // ensure validation is empty
   // delete temporary file from aws
   if (!validations.isEmpty()) {
-    // this.deleteFile(req.file)
     userFileServices.deleteFile(req.file)
     return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
   }
@@ -43,7 +41,7 @@ exports.register = async (req, res) => {
   // TODO: should be moved to validation file
   const user = await Users.find().or([{ 'email': email }, { 'dealership.name': dealership }])
   if (user.length > 0) {
-    this.deleteFile(req.file)
+    userFileServices.deleteFile(req.file)
     return res.status(500).send('user already exists')
   }
 
@@ -66,47 +64,32 @@ exports.register = async (req, res) => {
 
     const saved = await newUser.save()
     try {
-      // copy logo from temporary location to user directory
-      const awsCopy = {
-        Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved._id}`,
-        CopySource: req['file']['location'],
-        Key: `logo.${req['file']['mimetype'].split('/')[1]}`
-      }
-      // since aws does not offer a 'move' api, must delete after copy
-      const awsDelete = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${req['file']['key']}`
-      }
-
-      const logoLocation = {
-        Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved._id}`,
-        Key: `logo.${req['file']['mimetype'].split('/')[1]}`,
-        url: `${process.env.AWS_BASE_URL}/${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved._id}/logo.${req['file']['mimetype'].split('/')[1]}`
-      }
-
-      // perform operations
-      await s3.copyObject(awsCopy).promise()
-      await s3.deleteObject(awsDelete).promise()
-
-      // update the images of vehicle
-      // TODO: this could be joined with the save operation
+      const logoLocation = userFileServices.createDirAndMoveFile(saved, req.file)
       await Users.findOneAndUpdate({ _id: saved._id }, { logo: logoLocation })
 
       res.status(200).send('user created successfully')
     } catch (e) {
-      console.log(e)
-      this.deleteOnFail(saved._id, req.file)
+      errors.createAndSaveErrorMessage(e)
+      userFileServices.deleteOnFail(saved._id, req.file)
       return res.status(500).send('failed to upload logo')
     }
   } catch (e) {
-    console.log(e)
-    this.deleteFile(req.file)
+    errors.createAndSaveErrorMessage(e)
+    userFileServices.deleteFile(req.file)
     return res.status(500).send('error registering')
   }
 }
 
-// update function
-// arguments (optional): { email, password, dealership, (image)logo }
+/**
+ * @param {Object} req Request data
+ *                  - email
+ *                  - password
+ *                  - dealership
+ *                  - logo
+ * @param {Object} res Result data
+ * @return {Object} Outcome of operations, could be
+ *                  an error message or success message
+ */
 exports.updateUser = async (req, res) => {
   const validations = validationResult(req)
   const includesPhotos = !_.isEmpty(req.file)
@@ -117,7 +100,7 @@ exports.updateUser = async (req, res) => {
 
   // ensure validations have passed
   if (!validations.isEmpty()) {
-    this.deleteFile(req.file)
+    userFileServices.deleteFile(req.file)
     return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
   }
 
@@ -136,7 +119,7 @@ exports.updateUser = async (req, res) => {
         // if password is being updated, hash it then store it
         updateUser['password'] = await argon2.hash(req.body.password)
       } catch (e) {
-        console.log(e)
+        errors.createAndSaveErrorMessage(e)
         return res.status(500).send('unable to update password')
       }
     }
@@ -159,63 +142,57 @@ exports.updateUser = async (req, res) => {
       // check if update has failed,
       //  on fail, delete temporary file
       if (updated.n === 0) {
-        this.deleteFile(req.file)
+        userFileServices.deleteFile(req.file)
         return res.status(500).send('unable to find user')
       }
 
       // if user is updating their logo, then perform this step
       if (includesPhotos) {
         try {
-          const awsCopy = {
-            Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${user._id}`,
-            CopySource: req['file']['location'],
-            Key: `logo.${req['file']['mimetype'].split('/')[1]}`
-          }
-          const awsDelete = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: `${req['file']['key']}`
-          }
-
-          await s3.copyObject(awsCopy).promise()
-          await s3.deleteObject(awsDelete).promise()
+          userFileServices.updateFile(user, req.file)
         } catch (e) {
-          // if aws operation fails, always delete temporary file
-          console.log(e)
-          this.deleteFile(req.file)
+          errors.createAndSaveErrorMessage(e)
+          userFileServices.deleteFile(req.file)
           return res.status(500).send('unable to update logo')
         }
       }
       res.status(200).send('successfully updated user')
     } catch (e) {
-      console.log(e)
+      errors.createAndSaveErrorMessage(e)
+      userFileServices.deleteFile(req.file)
       return res.status(500).send('unable to update user')
     }
   } catch (e) {
-    console.log(e)
+    errors.createAndSaveErrorMessage(e)
+    userFileServices.deleteFile(req.file)
     return res.status(500).send('unable to find user')
   }
 }
 
-// login function
-// arguments: { username, password }
-// **NOTE** this is using the PassportJS middleware to authenticate
+/**
+ * @param {Object} req Request data
+ *                  - username (email)
+ *                  - password
+ * @param {Object} res Result data
+ * @return {Object} If user is authenticated
+ */
 exports.login = (req, res) => {
   passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err || !user) {
-      console.log(err)
-      console.log(user)
+      errors.createAndSaveErrorMessage(err)
+      errors.createAndSaveErrorMessage(user)
       return res.status(500).send('error logging in')
     }
 
     if (info !== undefined) {
-      console.log(info)
+      errors.createAndSaveErrorMessage(info)
       return res.status(500).send('error logging in')
     }
 
     // login user
     req.logIn(user, { session: false }, (err) => {
       if (err) {
-        console.log(err)
+        errors.createAndSaveErrorMessage(err)
         return res.status(500).send('error logging in')
       }
 
@@ -243,48 +220,4 @@ exports.login = (req, res) => {
       res.status(200).json({ 'token': token })
     })
   })(req, res)
-}
-
-// TODO: These functions could possibly be moved into a separate file
-// delete in case of failed create operations
-//  deletes the newly created user from db
-//  deletes the file from temporary storage
-this.deleteOnFail = async (id, file) => {
-  try {
-    await Users.findOneAndDelete({ _id: id })
-
-    // even if no file is passed, this check makes sure
-    if (file.length > 0) {
-      let awsDelete = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: file.key
-      }
-
-      await s3.deleteObject(awsDelete).promise()
-    }
-
-    return true
-  } catch (e) {
-    console.log(e)
-    return false
-  }
-}
-
-// helper file to delete temporary file, can be called anywhere
-// also checks if a file needs to be deleted
-this.deleteFile = async (file) => {
-  try {
-    if (!_.isUndefined(file)) {
-      let awsDelete = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: file.key
-      }
-      await s3.deleteObject(awsDelete).promise()
-    }
-
-    return true
-  } catch (e) {
-    console.log(e)
-    return false
-  }
 }
