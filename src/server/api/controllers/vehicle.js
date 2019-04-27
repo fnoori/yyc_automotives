@@ -136,7 +136,7 @@ exports.addNewVehicle = async (req, res) => {
     },
     'premium_ad': {
       'start': new Date('1969-12-19T00:58:02+0000').toISOString(),
-      'end' : new Date('1969-12-19T00:58:02+0000').toISOString()
+      'end': new Date('1969-12-19T00:58:02+0000').toISOString()
     },
     'views': 0
   })
@@ -348,8 +348,6 @@ exports.deletePhotos = async (req, res) => {
         }
       })
     }
-
-
 
     // loop through files to delete
     let awsDelete = {}

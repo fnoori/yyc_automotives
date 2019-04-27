@@ -9,9 +9,12 @@
     "dev": "concurrently \"npm run dev-client\" \"npm run dev-server\"",
     "dev-aws": "concurrently \"npm run dev-server-aws\" \"npm run dev-client-aws\"",
     "dev-client": "NODE_ENV=development vue-cli-service serve",
-    "dev-client-aws": "NODE_ENV=development-aws nodemon vue-cli-service serve",
+    "dev-client-aws": "NODE_ENV=development-aws vue-cli-service serve",
+    "dev-client-local": "NODE_ENV=development-local vue-cli-service serve",
     "dev-server": "NODE_ENV=development nodemon src/server/main.js",
-    "dev-server-aws": "NODE_ENV=development-aws nodemon src/server/main.js"
+    "dev-server-aws": "NODE_ENV=development-aws nodemon src/server/main.js",
+    "dev-server-local": "NODE_ENV=development-local nodemon src/server/main.js",
+    "debug": "NODE_ENV=development-local node --inspect --inspect-brk=3000 src/server/main.js"
   },
   "dependencies": {
     "argon2": "^0.21.0",
@@ -26,7 +29,6 @@
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
     "express-validator": "^5.3.1",
-    "fs": "0.0.1-security",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.4.20",
     "multer": "^1.4.1",

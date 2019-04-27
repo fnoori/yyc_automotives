@@ -7,7 +7,6 @@ const globalVars = require('../utils/globalVars')
 
 exports.validate = (method) => {
   switch (method) {
-
     // on new vehicle, some fields are required
     //  as per the vehicle model and some are optional
     case 'addNewVehicle': {

@@ -20,11 +20,9 @@ export default new Vuex.Store({
     fetchPremiumVehicles ({ commit }, { skip, limit }) {
       EventServices.getPremiumVehicles(skip, limit)
         .then(premium => {
-
-          for(let i = 0; i < premium.data.length; i++) {
-            premium.data[i].images[0].url = require(`../test_images/test-${i+1}.jpg`)
+          for (let i = 0; i < premium.data.length; i++) {
+            premium.data[i].images[0].url = require(`../test_images/test-${i + 1}.jpg`)
           }
-
 
           commit('SET_PREMIUM_VEHICLES', premium.data)
         }).catch(getPremiumErr => {

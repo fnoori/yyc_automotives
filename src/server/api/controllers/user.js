@@ -16,6 +16,8 @@ AWS.config.update({
 
 s3 = new AWS.S3()
 
+const userFileServices = require('../fileServices/userFileServices')()
+
 // register function
 // arguments: { email, password, dealership, (image)logo }
 exports.register = async (req, res) => {
@@ -27,7 +29,8 @@ exports.register = async (req, res) => {
   // ensure validation is empty
   // delete temporary file from aws
   if (!validations.isEmpty()) {
-    this.deleteFile(req.file)
+    // this.deleteFile(req.file)
+    userFileServices.deleteFile(req.file)
     return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
   }
 

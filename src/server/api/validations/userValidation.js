@@ -10,12 +10,12 @@ const Users = require('../models/user')
 // switch conditions for all possible condition
 exports.validate = (method) => {
   switch (method) {
-
     // on registration, all the fields are required
     case 'registration': {
       return [
         check('email')
           .exists()
+          .isEmail()
           .isLength({ max: globalVars.EMAIL_MAX_LENGTH }),
         check('password')
           .exists(),
@@ -31,6 +31,7 @@ exports.validate = (method) => {
       return [
         check('email')
           .optional()
+          .isEmail()
           .isLength({ max: globalVars.EMAIL_MAX_LENGTH }),
         check('confirmation_email')
           .optional()
