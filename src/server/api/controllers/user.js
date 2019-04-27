@@ -4,21 +4,10 @@ const _ = require('underscore')
 const argon2 = require('argon2')
 const passport = require('passport')
 const jwt = require('jsonwebtoken')
-const AWS = require('aws-sdk')
 const { validationResult } = require('express-validator/check')
-let s3
-
-// configuring the AWS environment
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-})
-
-s3 = new AWS.S3()
 
 const userFileServices = require('../fileServices/userFileServices')()
 const errors = require('../utils/errors')
-
 
 /**
  * @param {Object} req Request data
