@@ -12,9 +12,14 @@ AWS.config.update({
 let s3 = new AWS.S3()
 
 module.exports = () => ({
+  /**
+   * @param {JSON} file File information
+   * @returns {Boolean} Result of deleting file
+   */
   deleteFile: async (file) => {
     if (!_.isUndefined(file)) {
       if (process.env.NODE_ENV === 'development-local') {
+
         try {
           fs.unlinkSync(file.path)
 
@@ -23,8 +28,42 @@ module.exports = () => ({
           console.log(errors.createErrorMessage(e))
           return false
         }
+
       } else if (process.env.NODE_ENV === 'development-aws') {
+
+        // TODO: possibly join this else-if with the production else-if
+        try {
+          if (!_.isUndefined(file)) {
+            let awsDelete = {
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: file.key
+            }
+            await s3.deleteObject(awsDelete).promise()
+          }
+
+          return true
+        } catch (e) {
+          console.log(errors.createErrorMessage(e))
+          return false
+        }
+
       } else if (process.env.NODE_ENV === 'production') {
+
+        try {
+          if (!_.isUndefined(file)) {
+            let awsDelete = {
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: file.key
+            }
+            await s3.deleteObject(awsDelete).promise()
+          }
+
+          return true
+        } catch (e) {
+          console.log(errors.createErrorMessage(e))
+          return false
+        }
+        
       }
     }
   }
