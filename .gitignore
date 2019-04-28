@@ -4,6 +4,7 @@ node_modules
 /aws-cli-shortcuts
 /uploads/tmp
 /uploads/users
+/uploads/vehicles
 
 # local env files
 .env.local
