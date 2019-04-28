@@ -4,6 +4,7 @@ const validation = require('../validations/userValidation')
 const mongoose = require('mongoose')
 const passport = require('passport')
 const multer = require('multer')
+const utils = require('../utils/utils')
 
 const Controller = require('../controllers/user')
 
@@ -54,7 +55,7 @@ if (process.env.NODE_ENV === 'development-local') {
       cacheControl: 'no-cache',
       key: function (req, file, cb) {
         // create cryptographically secure random filename
-        cb(null, `development/uploads/${mongoose.Types.ObjectId()}.${file.mimetype.split('/')[1]}`)
+        cb(null, `development/uploads/${mongoose.Types.ObjectId()}.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
       }
     }),
     fileFilter: fileFilter
@@ -90,7 +91,7 @@ if (process.env.NODE_ENV === 'development-local') {
       cacheControl: 'no-cache',
       key: function (req, file, cb) {
         // create cryptographically secure random filename
-        cb(null, `production/uploads/${mongoose.Types.ObjectId()}.${file.mimetype.split('/')[1]}`)
+        cb(null, `production/uploads/${mongoose.Types.ObjectId()}.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
       }
     }),
     fileFilter: fileFilter

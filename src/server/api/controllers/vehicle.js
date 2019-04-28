@@ -4,7 +4,10 @@ const _ = require('underscore')
 const dot = require('dot-object')
 const { validationResult } = require('express-validator/check')
 const AWS = require('aws-sdk')
+const errors = require('../utils/errors')
 let s3
+
+const vehicleFileServices = require('../fileServices/vehicleFileServices')()
 
 // configuring the AWS environment
 AWS.config.update({
@@ -93,7 +96,7 @@ exports.addNewVehicle = async (req, res) => {
 
   // ensure validations pass
   if (!validations.isEmpty()) {
-    this.deleteFiles(req.files)
+    vehicleFileServices.deleteFiles(req.files)
     return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
   }
 
@@ -145,50 +148,18 @@ exports.addNewVehicle = async (req, res) => {
     const saved = await newVehicle.save()
 
     try {
-      let awsCopy = {}
-      let awsDelete = {}
-      const filesToCopy = req.files
-      let fileLocations = []
-
-      // step through vehicle images and move from
-      //  temporary directory to vehicle's directory
-      for (const file of filesToCopy) {
-        awsCopy = {
-          Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved.dealership}/${saved._id}`,
-          CopySource: file.location,
-          Key: file.key.split('/')[2]
-        }
-        awsDelete = {
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: file.key
-        }
-
-        // add links to the vehicle data in db
-        fileLocations.push({
-          Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved.dealership}/${saved._id}`,
-          Key: file.key.split('/')[2],
-          url: `${process.env.AWS_BASE_URL}/${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${saved.dealership}/${saved._id}/${file.key.split('/')[2]}`
-        })
-
-        // perform aws operations
-        await s3.copyObject(awsCopy).promise()
-        await s3.deleteObject(awsDelete).promise()
-      }
-
-      // update the images of vehicle
-      // TODO: this could be joined with the save operation
+      const fileLocations = await vehicleFileServices.createDirAndMoveFile(saved, req.files)
       await Vehicles.findOneAndUpdate({ _id: saved._id }, { images: fileLocations })
 
       res.status(200).send('vehicle created successfully')
     } catch (e) {
-      // on fail, delete vehicle from db and delete temporary files
-      console.log(e)
-      this.deleteOnFail(saved._id, req.files)
+      errors.createAndSaveErrorMessage(e)
+      vehicleFileServices.deleteOnFail(saved._id, req.files)
       return res.status(500).send('failed to upload images')
     }
   } catch (e) {
-    console.log(e)
-    this.deleteFiles(req.files)
+    errors.createAndSaveErrorMessage(e)
+    vehicleFileServices.deleteFiles(req.files)
     return res.status(500).send('failed to save vehicle')
   }
 }
@@ -207,7 +178,7 @@ exports.updateVehicle = async (req, res) => {
 
   // ensure validations pass
   if (!validations.isEmpty()) {
-    this.deleteFiles(req.files)
+    vehicleFileServices.deleteFiles(req.files)
     return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
   }
 
@@ -264,60 +235,26 @@ exports.updateVehicle = async (req, res) => {
 
     // if update fails, delete temporary files
     if (updated.n === 0) {
-      this.deleteFiles(req.files)
+      vehicleFileServices.deleteFiles(req.files)
       return res.status(500).send('could not find anything associated with that id')
     }
 
-    // if new photos are being uploaded, perform this
+    // if new photos, are being uploaded, perform this
     if (includesPhotos) {
       try {
-        let awsCopy = {}
-        let awsDelete = {}
-        let fileLocations = []
-
-        // need for-loop here, user could upload 1 photo, or 7 photos
-        //  this loop catches all conditions
-        for (const file of req.files) {
-          awsCopy = {
-            Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${vehicle.dealership}/${vehicle._id}`,
-            CopySource: file.location,
-            Key: file.key.split('/')[2]
-          }
-          awsDelete = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: file.key
-          }
-
-          // update photos list in vehicle data
-          fileLocations.push({
-            Bucket: `${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${vehicle.dealership}/${vehicle._id}`,
-            Key: file.key.split('/')[2],
-            url: `${process.env.AWS_BASE_URL}/${process.env.AWS_BUCKET_NAME}/${process.env.NODE_ENV}/users/${vehicle.dealership}/${vehicle._id}/${file.key.split('/')[2]}`
-          })
-
-          // perform aws operations
-          await s3.copyObject(awsCopy).promise()
-          await s3.deleteObject(awsDelete).promise()
-
-          // update vehicle photos array
-          // TODO: combine this with the the first update operation
-          const updatedPhotos = await Vehicles.findOneAndUpdate({ _id: vehicleId }, { $push: { 'images': fileLocations } })
-          if (updatedPhotos.n === 0) {
-            this.deleteFiles(req.files)
-            return res.status(500).send('failed to upload photos')
-          }
-        }
+        const fileLocations = await vehicleFileServices.updateFiles(vehicle, req.files)
+        await Vehicles.findOneAndUpdate({ _id: vehicleId }, { $push: { 'images': fileLocations } })
       } catch (e) {
-        console.log(e)
-        this.deleteFiles(req.files)
+        errors.createAndSaveErrorMessage(e)
+        vehicleFileServices.deleteFiles(req.files)
         return res.status(500).send('failed to upload photos')
       }
     }
 
     res.status(200).send('vehicle successfully updated')
   } catch (e) {
-    console.log(e)
-    this.deleteFiles(req.files)
+    errors.createAndSaveErrorMessage(e)
+    vehicleFileServices.deleteFiles(req.files)
     return res.status(500).send('failed to update vehicle')
   }
 }
@@ -373,7 +310,7 @@ exports.deletePhotos = async (req, res) => {
       'deleted': matchingImages
     })
   } catch (e) {
-    console.log(e)
+    errors.createAndSaveErrorMessage(e)
     return res.status(500).send('unable to delete photos')
   }
 }
@@ -413,11 +350,11 @@ exports.deleteVehicle = async (req, res) => {
         res.status(200).send(`successfully delete vehicle ${deleted._id}`)
       }
     } catch (e) {
-      console.log(e)
+      errors.createAndSaveErrorMessage(e)
       return res.status(500).send('successfully delete images, but failed to delete vehicle')
     }
   } catch (e) {
-    console.log(e)
+    errors.createAndSaveErrorMessage(e)
     return res.status(500).send('failed to delete images')
   }
 }
@@ -442,7 +379,7 @@ this.deleteOnFail = async (id, files) => {
 
     return true
   } catch (e) {
-    console.log(e)
+    errors.createAndSaveErrorMessage(e)
     return false
   }
 }
@@ -467,7 +404,7 @@ this.deleteFiles = async (files) => {
 
     return true
   } catch (e) {
-    console.log(e)
+    errors.createAndSaveErrorMessage(e)
     return false
   }
 }

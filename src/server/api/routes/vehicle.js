@@ -4,42 +4,104 @@ const Controller = require('../controllers/vehicle')
 const passport = require('passport')
 const validation = require('../validations/vehicleValidation')
 const mongoose = require('mongoose')
+const multer = require('multer')
+const utils = require('../utils/utils')
 
-// import aws libraries
-let aws = require('aws-sdk')
-let multer = require('multer')
-let multerS3 = require('multer-s3')
-let fileFilter
 let upload
 
-// configure aws
-let s3 = new aws.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-})
-
-// only allow images
-fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/jpeg' ||
-  file.mimetype === 'image/png') {
+// filter to only allow images
+// file must be PNG/jpeg
+let fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png' ||
+      file.mimetype === 'image/jpeg') {
     cb(null, true)
   } else {
     cb(null, false)
   }
 }
 
-// configure multer so files are directly uploaded to temporary directory, initially
-upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.AWS_BUCKET_NAME,
-    acl: 'public-read',
-    key: function (req, file, cb) {
-      cb(null, `${process.env.NODE_ENV}/uploads/${mongoose.Types.ObjectId()}.${file.mimetype.split('/')[1]}`)
+// local development environment, files uploaded locally
+if (process.env.NODE_ENV === 'development-local') {
+
+  let storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/tmp')
+    },
+    filename: function (req, file, cb) {
+      cb(null, `${Date.now()}-${file.originalname}`)
     }
-  }),
-  fileFilter: fileFilter
-})
+  })
+
+  upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+  })
+
+// aws development environment
+} else if (process.env.NODE_ENV === 'development-aws') {
+
+  let aws = require('aws-sdk')
+  let multerS3 = require('multer-s3')
+
+  // configure aws with keys
+  let s3 = new aws.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  })
+
+  // configure s3 multer, to upload directly to aws
+  upload = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.AWS_BUCKET_NAME,
+      acl: 'public-read',
+      cacheControl: 'no-cache',
+      key: function (req, file, cb) {
+        // create cryptographically secure random filename
+        cb(null, `development/uploads/${mongoose.Types.ObjectId()}.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
+      }
+    }),
+    fileFilter: fileFilter
+  })
+
+// production environment
+} else if (process.env.NODE_ENV === 'production') {
+
+  let aws = require('aws-sdk')
+  let multerS3 = require('multer-s3')
+
+  // configure aws with keys
+  let s3 = new aws.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  })
+
+  // filter to only allow images
+  fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' ||
+    file.mimetype === 'image/png') {
+      cb(null, true)
+    } else {
+      cb(null, false)
+    }
+  }
+
+  // configure s3 multer, to upload directly to aws
+  upload = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.AWS_BUCKET_NAME,
+      acl: 'public-read',
+      cacheControl: 'no-cache',
+      key: function (req, file, cb) {
+        // create cryptographically secure random filename
+        cb(null, `production/uploads/${mongoose.Types.ObjectId()}.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
+      }
+    }),
+    fileFilter: fileFilter
+  })
+
+}
 
 // get routes with various parameters
 //  parameters are passed as query.parameters
