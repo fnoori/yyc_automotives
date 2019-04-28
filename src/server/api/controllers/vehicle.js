@@ -3,19 +3,8 @@ const Vehicles = require('../models/vehicle')
 const _ = require('underscore')
 const dot = require('dot-object')
 const { validationResult } = require('express-validator/check')
-const AWS = require('aws-sdk')
 const errors = require('../utils/errors')
-let s3
-
 const vehicleFileServices = require('../fileServices/vehicleFileServices')()
-
-// configuring the AWS environment
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-})
-
-s3 = new AWS.S3()
 
 // get all vehicles functions
 // arguments: { how much to skip, and limit of how much to retrieve }
@@ -263,51 +252,28 @@ exports.updateVehicle = async (req, res) => {
 // this function is ONLY called when photos are being
 //  deleted
 exports.deletePhotos = async (req, res) => {
-  const toDelete = []
-  toDelete.push(req.body.images)
+  const toDelete = Array.isArray(req.body.images) ? req.body.images : Array(req.body.images)
 
   try {
     // ensure the user deleting is allowed to, via the token
     const vehicle = await Vehicles
-      .find({
+      .findOne({
         _id: req.params.vehicle_id,
         dealership: req['user']['_id']
       })
 
-    // look through the vehicle in db for matching images to verify they exist
-    let matchingImages = []
-    let matchingImageUrl = []
-    for (const image of toDelete) {
-      vehicle[0]['images'].find(details => {
-        if (details.url === image) {
-          matchingImages.push(details)
-          matchingImageUrl.push(details.url)
-        }
-      })
-    }
+    const deletedImages = await vehicleFileServices.deleteVehiclePhotos(vehicle, toDelete)
 
-    // loop through files to delete
-    let awsDelete = {}
-    for (const image of matchingImages) {
-      awsDelete = {
-        Bucket: image.Bucket,
-        Key: image.Key
-      }
-
-      await s3.deleteObject(awsDelete).promise()
-    }
-
-    // finally update the vehicles data in db
     await Vehicles
       .update({
         _id: req.params.vehicle_id, dealership: req['user']['_id']
       },
       {
-        $pull: { images: { url: { $in: matchingImageUrl } } }
+        $pull: { images: { url: { $in: deletedImages } } }
       })
 
     return res.status(200).json({
-      'deleted': matchingImages
+      'deleted': deletedImages
     })
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
@@ -319,24 +285,13 @@ exports.deletePhotos = async (req, res) => {
 exports.deleteVehicle = async (req, res) => {
   // find vehicle and check with token that user is allowed to delete
   const vehicle = await Vehicles
-    .find({
+    .findOne({
       _id: req.params.vehicle_id,
       dealership: req['user']['_id']
     })
 
   try {
-    let images = vehicle[0].images
-    let awsDelete = {}
-
-    // delete images first from aws
-    for (const image of images) {
-      awsDelete = {
-        'Bucket': image.Bucket,
-        'Key': image.Key
-      }
-
-      await s3.deleteObject(awsDelete).promise()
-    }
+    await vehicleFileServices.deleteFilesAndDirectoryOfDeletedVehicle(vehicle.images)
 
     try {
       // delete vehicle
@@ -356,55 +311,5 @@ exports.deleteVehicle = async (req, res) => {
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
     return res.status(500).send('failed to delete images')
-  }
-}
-
-// deletes on failed add new vehicle attempt
-// deletes the vehicle from db and its temporary files from aws
-this.deleteOnFail = async (id, files) => {
-  try {
-    await Vehicles.findOneAndRemove({ _id: id })
-    let awsDelete = {}
-
-    if (files.length > 0) {
-      for (const file of files) {
-        awsDelete = {
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: file.key
-        }
-
-        await s3.deleteObject(awsDelete).promise()
-      }
-    }
-
-    return true
-  } catch (e) {
-    errors.createAndSaveErrorMessage(e)
-    return false
-  }
-}
-
-// delete an array of files
-// TODO: could be moved in a separate utils file
-this.deleteFiles = async (files) => {
-  try {
-    let awsDelete = {}
-
-    // check if there are files to delete
-    if (files.length > 0) {
-      for (const file of files) {
-        awsDelete = {
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: file.key
-        }
-
-        await s3.deleteObject(awsDelete).promise()
-      }
-    }
-
-    return true
-  } catch (e) {
-    errors.createAndSaveErrorMessage(e)
-    return false
   }
 }

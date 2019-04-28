@@ -371,5 +371,125 @@ module.exports = () => ({
       }
 
     }
+  },
+
+  /**
+   * @param {string} id Vehicle id
+   * @param {array} list of files to delete
+   * @returns {[array, boolean]} A list of images deleted
+   */
+  deleteVehiclePhotos: async (vehicle, files) => {
+    let matchingImagesUrl = []
+    
+    if (process.env.NODE_ENV === 'development-local') {
+
+      try {
+
+        for (const file of files) {
+          vehicle.images.find(photo => {
+            if (photo.url === file) {
+              matchingImagesUrl.push(photo.url)
+              fs.unlinkSync(photo.url)
+            }
+          })
+        }
+
+        return matchingImagesUrl
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        return false
+      }
+
+    } else if (process.env.NODE_ENV === 'development-aws') {
+
+      try {
+        // look through the vehicle in db for matching images to verify they exist
+        let matchingImages = []
+        for (const file of files) {
+          vehicle.images.find(photo => {
+            if (photo.url === file) {
+              matchingImagesUrl.push(photo.url)
+              matchingImages.push(photo)
+            }
+          })
+        }
+
+        // loop through files to delete
+        // TODO: this could be moved to the above for-loop
+        let awsDelete = {}
+        for (const image of matchingImages) {
+          awsDelete = {
+            Bucket: image.Bucket,
+            Key: image.Key
+          }
+
+          await s3.deleteObject(awsDelete).promise()
+        } 
+
+        return matchingImagesUrl
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        return false
+      }
+
+    // TODO: this could be merged with the development-aws
+    } else if (process.env.NODE_ENV === 'production') {
+
+      try {
+        // look through the vehicle in db for matching images to verify they exist
+        let matchingImages = []
+        for (const file of files) {
+          vehicle.images.find(photo => {
+            if (photo.url === file) {
+              matchingImagesUrl.push(photo.url)
+              matchingImages.push(photo)
+            }
+          })
+        }
+
+        // loop through files to delete
+        // TODO: this could be moved to the above for-loop
+        let awsDelete = {}
+        for (const image of matchingImages) {
+          awsDelete = {
+            Bucket: image.Bucket,
+            Key: image.Key
+          }
+
+          await s3.deleteObject(awsDelete).promise()
+        } 
+
+        return matchingImagesUrl
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        return false
+      }
+
+    }
+  },
+
+  /**
+   * @param {array} files All files to delete
+   * @returns {boolean} Result of deleting files
+   */
+  deleteFilesAndDirectoryOfDeletedVehicle: async (files) => {
+    if (process.env.NODE_ENV === 'development-local') {
+
+      try {
+        const dirToDelete = utils.getEmptyVehicleDirectoryToDelete(files[0])
+
+        for (const file of files) {
+          fs.unlinkSync(file.url)
+        }
+
+        fs.rmdirSync(dirToDelete)
+
+        return true
+      } catch (e) {
+        errors.createAndSaveErrorMessage(e)
+        return false
+      }
+
+    }
   }
 })
