@@ -31,3 +31,15 @@ exports.createAndSaveErrorMessage = (errorDetails) => {
       return false
     })
 }
+
+/**
+ * @param {boolean} isSuccessful 
+ * @param {Object} value Error information
+ * @returns {boolean} Result of save error to db
+ */
+exports.returnError = (isSuccessful, value) => {
+  return {
+    isSuccessful: isSuccessful,
+    value: value
+  }
+}

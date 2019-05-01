@@ -6,8 +6,14 @@ const { validationResult } = require('express-validator/check')
 const errors = require('../utils/errors')
 const vehicleFileServices = require('../fileServices/vehicleFileServices')()
 
-// get all vehicles functions
-// arguments: { how much to skip, and limit of how much to retrieve }
+/**
+ * Returns only the regular ad vehicles
+ * @param {Object} req Request data
+ *                  - limit
+ *                  - skip
+ * @param {Object} res Result data
+ * @return {Object} Regular vehicles
+ */
 exports.getRegularVehicles = (req, res) => {
   const limit = parseInt(req.params.limit)
   const skip = parseInt(req.params.skip)
@@ -15,14 +21,25 @@ exports.getRegularVehicles = (req, res) => {
   Vehicles.find().where('premium_ad.end').lt(new Date())
     .skip(skip).limit(limit)
     .then(vehicles => {
-      res.status(200).send(vehicles)
+      res.status(200).json({
+        isSuccessful: true,
+        value: vehicles
+      })
     }).catch(findErr => {
-      res.status(500).send('could not retrieve vehicles')
+      res.status(500).json({
+        isSuccessful: false,
+        value: 'could not retrieve vehicles'
+      })
     })
 }
 
-// get vehicle by provided id
-// arguments: { vehicle_id }
+
+/**
+ * @param {Object} req Request data
+ *                  - vehicle_id
+ * @param {Object} res Result data
+ * @return {Object} Data of vehicle with associated id
+ */
 exports.getVehicleById = (req, res) => {
   const vehicleId = req.params.vehicle_id
 
@@ -32,20 +49,35 @@ exports.getVehicleById = (req, res) => {
       // update view count of vehicle data
       Vehicles.update({ _id: vehicleId }, { $inc: { 'views': 1 } })
         .then(updated => {
-          res.status(200).send(vehicle)
+          res.status(200).json({
+            isSuccessful: true,
+            value: vehicle
+          })
         }).catch(updateViewCountErr => {
-          console.log(updateViewCountErr)
-          return res.status(500).send('failed to update view count')
+          errors.createAndSaveErrorMessage(updateViewCountErr)
+          return res.status(500).json({
+            isSuccessful: false,
+            value: 'failed to update view count'
+          })
         })
     }).catch(findOne => {
-      console.log(findOne)
-      return res.status(500).send('error finding vehicle')
+      errors.createAndSaveErrorMessage(findOne)
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'error finding vehicle'
+      })
     })
 }
 
-// get premium ad vehicles
-// arguments: { how much to skip, and limit of how much to retrieve }
-// TODO: this could be joined with getVehicles function
+/**
+ * TODO: this could be joined with getVehicles function
+ * Returns only the premium vehicles
+ * @param {Object} req Request data
+ *                  - skip
+ *                  - limit
+ * @param {Object} res Result data
+ * @return {Object} Premium vehicles
+ */
 exports.getPremiumVehicles = (req, res) => {
   const limit = parseInt(req.params.limit)
   const skip = parseInt(req.params.skip)
@@ -57,13 +89,24 @@ exports.getPremiumVehicles = (req, res) => {
     .then(premiumVehicles => {
       res.send(premiumVehicles)
     }).catch(findErr => {
-      console.log(findErr)
-      return res.status(500).send('unexpected error when retrieving premium vehicles')
+      errors.createAndSaveErrorMessage(findErr)
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'unexpected error when retrieving premium vehicles'
+      })
     })
 }
 
-// get dealerships vehicles
-// arguments: { how much to skip, and limit of how much to retrieve, user_id }
+
+/**
+ * Returns only the specified dealership's vehicles
+ * @param {Object} req Request data
+ *                  - dealership_id
+ *                  - skip
+ *                  - limit
+ * @param {Object} res Result data
+ * @return {Object} All of dealership's vehicles
+ */
 exports.getVehiclesByDealershipId = (req, res) => {
   const dealershipId = req.params.dealership_id
   const skip = req.params.skip
@@ -72,14 +115,26 @@ exports.getVehiclesByDealershipId = (req, res) => {
   Vehicles.find({ dealership: dealershipId })
     .skip(skip).limit(limit)
     .then(vehicles => {
-      res.status(200).send(vehicles)
+      res.status(200).json({
+        isSuccessful: true,
+        value: vehicles
+      })
     }).catch(findErr => {
-      console.log(findErr)
-      return res.status(500).send('error finding the dealership\'s vehicles')
+      errors.createAndSaveErrorMessage(findErr)
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'error finding the dealership\'s vehicles'
+      })
     })
 }
 
-// add new vehicle to user
+/**
+ * Adds new vehicle to the database
+ * @param {Object} req Request data
+ *                  - vehicle details (see vehicle model for complete list)
+ * @param {Object} res Result data
+ * @return {Object} Result of adding vehicle
+ */
 exports.addNewVehicle = async (req, res) => {
   let validations = validationResult(req)
 
@@ -140,20 +195,34 @@ exports.addNewVehicle = async (req, res) => {
       const fileLocations = await vehicleFileServices.createDirAndMoveFile(saved, req.files)
       await Vehicles.findOneAndUpdate({ _id: saved._id }, { images: fileLocations })
 
-      res.status(200).send('vehicle created successfully')
+      res.status(200).json({
+        isSuccessful: true,
+        value: 'vehicle created successfully'
+      })
     } catch (e) {
       errors.createAndSaveErrorMessage(e)
       vehicleFileServices.deleteOnFail(saved._id, req.files)
-      return res.status(500).send('failed to upload images')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'failed to upload images'
+      })
     }
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
     vehicleFileServices.deleteFiles(req.files)
-    return res.status(500).send('failed to save vehicle')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'failed to save vehicle'
+    })
   }
 }
 
-// update user's vehicle
+/**
+ * @param {Object} req Request data
+ *                  - vehicle details (see vehicle model for complete list)
+ * @param {Object} res Result data
+ * @return {Object} Result of adding vehicle
+ */
 exports.updateVehicle = async (req, res) => {
   const validations = validationResult(req)
   let includesPhotos = false
@@ -225,7 +294,10 @@ exports.updateVehicle = async (req, res) => {
     // if update fails, delete temporary files
     if (updated.n === 0) {
       vehicleFileServices.deleteFiles(req.files)
-      return res.status(500).send('could not find anything associated with that id')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'could not find anything associated with that id'
+      })
     }
 
     // if new photos, are being uploaded, perform this
@@ -236,21 +308,33 @@ exports.updateVehicle = async (req, res) => {
       } catch (e) {
         errors.createAndSaveErrorMessage(e)
         vehicleFileServices.deleteFiles(req.files)
-        return res.status(500).send('failed to upload photos')
+        return res.status(500).json({
+          isSuccessful: false,
+          value: 'failed to upload photos'
+        })
       }
     }
 
-    res.status(200).send('vehicle successfully updated')
+    res.status(200).json({
+      isSuccessful: true,
+      value: 'vehicle successfully updated'
+    })
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
     vehicleFileServices.deleteFiles(req.files)
-    return res.status(500).send('failed to update vehicle')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'failed to update vehicle'
+    })
   }
 }
 
-// function to delete vehicle photo(s)
-// this function is ONLY called when photos are being
-//  deleted
+/**
+ * @param {Object} req Request data
+ *                  - array of image url's
+ * @param {Object} res Result data
+ * @return {Object} Result of deleting image's
+ */
 exports.deletePhotos = async (req, res) => {
   const toDelete = Array.isArray(req.body.images) ? req.body.images : Array(req.body.images)
 
@@ -273,15 +357,24 @@ exports.deletePhotos = async (req, res) => {
       })
 
     return res.status(200).json({
-      'deleted': deletedImages
+      isSuccessful: true,
+      value: deletedImages
     })
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
-    return res.status(500).send('unable to delete photos')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'unable to delete photos'
+    })
   }
 }
 
-// function to delete vehicle
+/**
+ * @param {Object} req Request data
+ *                  - vehicle_id
+ * @param {Object} res Result data
+ * @return {Object} Result of deleting vehicle
+ */
 exports.deleteVehicle = async (req, res) => {
   // find vehicle and check with token that user is allowed to delete
   const vehicle = await Vehicles
@@ -302,14 +395,23 @@ exports.deleteVehicle = async (req, res) => {
       })
 
       if (deleted) {
-        res.status(200).send(`successfully delete vehicle ${deleted._id}`)
+        res.status(200).json({
+          isSuccessful: true,
+          value: `successfully delete vehicle ${deleted._id}`
+        })
       }
     } catch (e) {
       errors.createAndSaveErrorMessage(e)
-      return res.status(500).send('successfully delete images, but failed to delete vehicle')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'successfully delete images, but failed to delete vehicle'
+      })
     }
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
-    return res.status(500).send('failed to delete images')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'failed to delete images'
+    })
   }
 }

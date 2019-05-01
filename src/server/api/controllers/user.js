@@ -29,12 +29,18 @@ exports.register = async (req, res) => {
   // delete temporary file from aws
   if (!validations.isEmpty()) {
     userFileServices.deleteFile(req.file)
-    return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
+    return res.status(400).json({
+      isSuccessful: false,
+      value: validations.array({ onlyFirstError: true })
+    })
   }
 
   // check if a logo is included
   if (!req.file) {
-    return res.status(500).send('must include a logo')
+    return res.status(400).json({
+      isSuccessful: false,
+      value: 'must include a logo'
+    })
   }
 
   // check if email/dealership already exists
@@ -42,7 +48,10 @@ exports.register = async (req, res) => {
   const user = await Users.find().or([{ 'email': email }, { 'dealership.name': dealership }])
   if (user.length > 0) {
     userFileServices.deleteFile(req.file)
-    return res.status(500).send('user already exists')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'user already exists'
+    })
   }
 
   // hash password, create new user and save
@@ -67,16 +76,25 @@ exports.register = async (req, res) => {
       const logoLocation = userFileServices.createDirAndMoveFile(saved, req.file)
       await Users.findOneAndUpdate({ _id: saved._id }, { logo: logoLocation })
 
-      res.status(200).send('user created successfully')
+      res.status(200).json({
+        isSuccessful: true,
+        value: 'user created successfully'
+      })
     } catch (e) {
       errors.createAndSaveErrorMessage(e)
       userFileServices.deleteOnFail(saved._id, req.file)
-      return res.status(500).send('failed to upload logo')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'failed to upload logo'
+      })
     }
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
     userFileServices.deleteFile(req.file)
-    return res.status(500).send('error registering')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'error registering'
+    })
   }
 }
 
@@ -101,7 +119,10 @@ exports.updateUser = async (req, res) => {
   // ensure validations have passed
   if (!validations.isEmpty()) {
     userFileServices.deleteFile(req.file)
-    return res.status(422).json({ validations: validations.array({ onlyFirstError: true }) })
+    return res.status(400).json({ 
+      isSuccessful: true,
+      value: validations.array({ onlyFirstError: true }) 
+    })
   }
 
   try {
@@ -120,7 +141,10 @@ exports.updateUser = async (req, res) => {
         updateUser['password'] = await argon2.hash(req.body.password)
       } catch (e) {
         errors.createAndSaveErrorMessage(e)
-        return res.status(500).send('unable to update password')
+        return res.status(500).json({
+          isSuccessful: false,
+          value: 'unable to update password'
+        })
       }
     }
 
@@ -143,7 +167,10 @@ exports.updateUser = async (req, res) => {
       //  on fail, delete temporary file
       if (updated.n === 0) {
         userFileServices.deleteFile(req.file)
-        return res.status(500).send('unable to find user')
+        return res.status(500).json({
+          isSuccessful: false,
+          value: 'unable to find user'
+        })
       }
 
       // if user is updating their logo, then perform this step
@@ -153,19 +180,31 @@ exports.updateUser = async (req, res) => {
         } catch (e) {
           errors.createAndSaveErrorMessage(e)
           userFileServices.deleteFile(req.file)
-          return res.status(500).send('unable to update logo')
+          return res.status(500).json({
+            isSuccessful: false,
+            value: 'unable to update logo'
+          })
         }
       }
-      res.status(200).send('successfully updated user')
+      res.status(200).json({
+        isSuccessful: true,
+        value: 'successfully updated user'
+      })
     } catch (e) {
       errors.createAndSaveErrorMessage(e)
       userFileServices.deleteFile(req.file)
-      return res.status(500).send('unable to update user')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'unable to update user'
+      })
     }
   } catch (e) {
     errors.createAndSaveErrorMessage(e)
     userFileServices.deleteFile(req.file)
-    return res.status(500).send('unable to find user')
+    return res.status(500).json({
+      isSuccessful: false,
+      value: 'unable to find user'
+    })
   }
 }
 
@@ -181,19 +220,28 @@ exports.login = (req, res) => {
     if (err || !user) {
       errors.createAndSaveErrorMessage(err)
       errors.createAndSaveErrorMessage(user)
-      return res.status(500).send('error logging in')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'error logging in'
+      })
     }
 
     if (info !== undefined) {
       errors.createAndSaveErrorMessage(info)
-      return res.status(500).send('error logging in')
+      return res.status(500).json({
+        isSuccessful: false,
+        value: 'error logging in'
+      })
     }
 
     // login user
     req.logIn(user, { session: false }, (err) => {
       if (err) {
         errors.createAndSaveErrorMessage(err)
-        return res.status(500).send('error logging in')
+        return res.status(500).json({
+          isSuccessful: false,
+          value: 'error logging in'
+        })
       }
 
       // create token body
@@ -217,7 +265,10 @@ exports.login = (req, res) => {
       const token = jwt.sign({ 'user': jwtBody }, process.env.PRIVATE_KEY, options)
 
       // return token to user, to store on client side
-      res.status(200).json({ 'token': token })
+      res.status(200).json({ 
+        isSuccessful: true,
+        value: token
+      })
     })
   })(req, res)
 }
