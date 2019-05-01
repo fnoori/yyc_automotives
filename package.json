@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "dev": "concurrently \"npm run dev-client\" \"npm run dev-server\"",
+    "dev": "concurrently \"npm run dev-client-local\" \"npm run dev-server-local\"",
     "dev-aws": "concurrently \"npm run dev-server-aws\" \"npm run dev-client-aws\"",
     "dev-client": "NODE_ENV=development vue-cli-service serve",
     "dev-client-aws": "NODE_ENV=development-aws vue-cli-service serve",
