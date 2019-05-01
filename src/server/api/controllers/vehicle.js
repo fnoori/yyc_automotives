@@ -87,7 +87,10 @@ exports.getPremiumVehicles = (req, res) => {
     .populate('dealership')
     .skip(skip).limit(limit)
     .then(premiumVehicles => {
-      res.send(premiumVehicles)
+      res.json({
+        isSuccessful: true,
+        value: premiumVehicles
+      })
     }).catch(findErr => {
       errors.createAndSaveErrorMessage(findErr)
       return res.status(500).json({

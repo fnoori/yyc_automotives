@@ -1,11 +1,22 @@
 <template>
   <div class="home">
     <div class="premium-row">
-      <premium-card v-for="premium in premiumVehicles" :key="premium._id" :vehicle="premium"/>
+      <!-- <premium-card v-for="premium in premiumVehicles" :key="premium._id" :vehicle="premium"/>
+      <div v-for="premium in premiumVehicles" :key=premium._id>{{premium._id}}</div> -->
+      <ul>
+        <li v-for="premium in premiumVehicles" :key="premium._id">{{premium._id}}</li>
+      </ul>
+      <button @click="premiumLoadMore">load more</button>
+      <div>{{loadingPremium}}</div>
     </div>
 
     <div class="regular-row">
-      <regular-card v-for="regular in regularVehicles" :key="regular._id" :vehicle="regular" />
+      <!-- <regular-card v-for="regular in regularVehicles" :key="regular._id" :vehicle="regular" /> -->
+      <ul>
+        <li v-for="regular in regularVehicles" :key="regular._id">{{regular._id}}</li>
+      </ul>
+      <button @click="regularLoadMore">load more</button>
+      <div>{{loadingRegular}}</div>
     </div>
   </div>
 </template>
@@ -24,21 +35,39 @@ export default {
   data () {
     return {
       premiumSkip: 0,
-      premiumLimit: 5,
+      premiumLimit: 2,
 
-      regularVehicles: [],
       regularSkip: 0,
-      regularLimit: 5
+      regularLimit: 2
     }
   },
   created () {
-    this.$store.dispatch('fetchPremiumVehicles', {
-      skip: this.premiumSkip,
-      limit: 4
-    })
+    this.premiumLoadMore()
+    this.regularLoadMore()
   },
   computed: {
-    ...mapState(['premiumVehicles'])
+    ...mapState([
+        'premiumVehicles',
+        'regularVehicles',
+        'loadingPremium',
+        'loadingRegular'
+      ])
+  },
+  methods: {
+    premiumLoadMore () {
+      this.$store.dispatch('fetchPremiumVehicles', {
+        skip: this.premiumSkip,
+        limit: this.premiumLimit
+      })
+      this.skip += 2
+    },
+    regularLoadMore () {
+      this.$store.dispatch('fetchRegularVehicles', {
+        skip: this.regularSkip,
+        limit: this.regularLimit
+      })
+      this.skip += 2
+    }
   }
 }
 </script>
