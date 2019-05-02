@@ -155,11 +155,11 @@ module.exports = () => ({
 
       try {
         // make new dir and move logo
-        fs.mkdirSync(`uploads/users/${user._id}`, { recursive: true })
-        fs.renameSync(file.path, `uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
+        fs.mkdirSync(`public/uploads/users/${user._id}`, { recursive: true })
+        fs.renameSync(file.path, `public/uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
 
         return {
-          url: `uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`
+          url: `public/uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`
         }
       } catch (e) {
         errors.createAndSaveErrorMessage(e)
@@ -240,7 +240,7 @@ module.exports = () => ({
 
       try {
         // replace logo
-        fs.renameSync(file.path, `uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
+        fs.renameSync(file.path, `public/uploads/users/${user._id}/logo.${utils.getFileExtensionFromMimeType(file.mimetype)}`)
 
         return true
       } catch (e) {

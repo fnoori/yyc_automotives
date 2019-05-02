@@ -93,12 +93,12 @@ module.exports = () => ({
       try {
         let fileLocations = []
 
-        fs.mkdirSync(`uploads/users/${vehicle.dealership}/${vehicle._id}`, { recursive: true })
+        fs.mkdirSync(`public/uploads/users/${vehicle.dealership}/${vehicle._id}`, { recursive: true })
 
         for (const file of files) {
-          fs.renameSync(file.path, `uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`)
+          fs.renameSync(file.path, `public/uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`)
           fileLocations.push({
-            url: `uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`
+            url: `public/uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`
           })
         }
 
@@ -276,10 +276,10 @@ module.exports = () => ({
       try {
         let fileLocations = []
         for (const file of files) {
-          fs.renameSync(file.path, `uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`)
+          fs.renameSync(file.path, `public/uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`)
 
           fileLocations.push({
-            url: `uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`
+            url: `public/uploads/users/${vehicle.dealership}/${vehicle._id}/${file.filename}`
           })
         }
 

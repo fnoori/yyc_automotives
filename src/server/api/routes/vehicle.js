@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'development-local') {
 
   let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/tmp')
+      cb(null, 'public/uploads/tmp')
     },
     filename: function (req, file, cb) {
       cb(null, `${Date.now()}-${file.originalname}`)
