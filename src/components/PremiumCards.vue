@@ -7,10 +7,9 @@
       :sub-title="'$ ' + vehicle.basic_info.price"
       title-tag="h6"
       :img-src="vehicle.images[0].url"
-      img-alt="Image"
       class="premium-card"
       img-top>
-
+  
       <b-card-text class="row text-right">
         <div class="col">
           <div class="d-block quick-info">

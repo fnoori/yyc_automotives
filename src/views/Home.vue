@@ -1,22 +1,15 @@
 <template>
   <div class="home">
     <div class="premium-row">
-      <!-- <premium-card v-for="premium in premiumVehicles" :key="premium._id" :vehicle="premium"/>
-      <div v-for="premium in premiumVehicles" :key=premium._id>{{premium._id}}</div> -->
-      <ul>
-        <li v-for="premium in premiumVehicles" :key="premium._id">{{premium._id}}</li>
-      </ul>
-      <button @click="premiumLoadMore">load more</button>
-      <div>{{loadingPremium}}</div>
+      <premium-card v-for="premium in premiumVehicles" :key="premium._id" :vehicle="premium"/>
+      <!-- <button @click="premiumLoadMore">load more</button> -->
+      <!-- <div>{{loadingPremium}}</div> -->
     </div>
 
     <div class="regular-row">
-      <!-- <regular-card v-for="regular in regularVehicles" :key="regular._id" :vehicle="regular" /> -->
-      <ul>
-        <li v-for="regular in regularVehicles" :key="regular._id">{{regular._id}}</li>
-      </ul>
-      <button @click="regularLoadMore">load more</button>
-      <div>{{loadingRegular}}</div>
+      <regular-card v-for="regular in regularVehicles" :key="regular._id" :vehicle="regular" />
+      <!-- <button @click="regularLoadMore">load more</button> -->
+      <!-- <div>{{loadingRegular}}</div> -->
     </div>
   </div>
 </template>
@@ -59,14 +52,14 @@ export default {
         skip: this.premiumSkip,
         limit: this.premiumLimit
       })
-      this.skip += 2
+      this.premiumSkip += 2
     },
     regularLoadMore () {
       this.$store.dispatch('fetchRegularVehicles', {
         skip: this.regularSkip,
         limit: this.regularLimit
       })
-      this.skip += 2
+      this.regularSkip += 2
     }
   }
 }
